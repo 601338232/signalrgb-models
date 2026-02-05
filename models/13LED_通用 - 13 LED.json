@@ -1,0 +1,94 @@
+{
+  "ProductName": "13LED_通用",
+  "DisplayName": "13LED_通用 - 13 LED",
+  "Brand": "CompGen",
+  "Type": "custom",
+  "LedCount": 13,
+  "Width": 17,
+  "Height": 17,
+  "LedMapping": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "LedCoordinates": [
+    [
+      2,
+      11
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      7,
+      1
+    ],
+    [
+      10,
+      1
+    ],
+    [
+      13,
+      3
+    ],
+    [
+      15,
+      7
+    ],
+    [
+      15,
+      10
+    ],
+    [
+      13,
+      13
+    ],
+    [
+      10,
+      15
+    ],
+    [
+      7,
+      15
+    ],
+    [
+      4,
+      13
+    ]
+  ],
+  "LedNames": [
+    "Led1",
+    "Led2",
+    "Led3",
+    "Led4",
+    "Led5",
+    "Led6",
+    "Led7",
+    "Led8",
+    "Led9",
+    "Led10",
+    "Led11",
+    "Led12",
+    "Led13"
+  ],
+  "ImageUrl":"https://gitee.com/drgb-controller/drgb/raw/master/Image/Universal%20fan.png"
+}

@@ -1,0 +1,76 @@
+{
+  "ProductName": "10LED_通用",
+  "DisplayName": "10LED_通用 - 10 LED",
+  "Brand": "CompGen",
+  "Type": "custom",
+  "LedCount": 10,
+  "Width": 17,
+  "Height": 17,
+  "LedMapping": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "LedCoordinates": [
+    [
+      1,
+      9
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      5,
+      2
+    ],
+    [
+      9,
+      1
+    ],
+    [
+      13,
+      3
+    ],
+    [
+      15,
+      7
+    ],
+    [
+      14,
+      11
+    ],
+    [
+      11,
+      14
+    ],
+    [
+      7,
+      15
+    ],
+    [
+      3,
+      13
+    ]
+  ],
+  "LedNames": [
+    "Led1",
+    "Led2",
+    "Led3",
+    "Led4",
+    "Led5",
+    "Led6",
+    "Led7",
+    "Led8",
+    "Led9",
+    "Led10"
+  ],
+  "ImageUrl":"https://gitee.com/drgb-controller/drgb/raw/master/Image/Universal%20fan.png"
+}

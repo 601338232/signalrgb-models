@@ -1,0 +1,64 @@
+{
+  "ProductName": "08LED_通用",
+  "DisplayName": "08LED_通用 - 8 LED",
+  "Brand": "CompGen",
+  "Type": "custom",
+  "LedCount": 8,
+  "Width": 17,
+  "Height": 17,
+  "LedMapping": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "LedCoordinates": [
+    [
+      1,
+      8
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      8,
+      1
+    ],
+    [
+      13,
+      3
+    ],
+    [
+      15,
+      8
+    ],
+    [
+      13,
+      13
+    ],
+    [
+      8,
+      15
+    ],
+    [
+      3,
+      13
+    ]
+  ],
+  "LedNames": [
+    "Led1",
+    "Led2",
+    "Led3",
+    "Led4",
+    "Led5",
+    "Led6",
+    "Led7",
+    "Led8"
+  ],
+  "ImageUrl":"https://gitee.com/drgb-controller/drgb/raw/master/Image/Universal%20fan.png"
+}

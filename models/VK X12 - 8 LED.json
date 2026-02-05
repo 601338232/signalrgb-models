@@ -1,0 +1,64 @@
+{
+  "ProductName": "VK X12",
+  "DisplayName": "VK X12 - 8 LED",
+  "Brand": "CompGen",
+  "Type": "custom",
+  "LedCount": 8,
+  "Width": 9,
+  "Height": 9,
+  "LedMapping": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "LedCoordinates": [
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      7
+    ],
+    [
+      8,
+      1
+    ],
+    [
+      7,
+      0
+    ]
+  ],
+  "LedNames": [
+    "Led1",
+    "Led2",
+    "Led3",
+    "Led4",
+    "Led5",
+    "Led6",
+    "Led7",
+    "Led8"
+  ],
+  "ImageUrl":"https://gitee.com/drgb-controller/drgb/raw/master/Image/VKX12.png"
+}
