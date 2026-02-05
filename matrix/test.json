@@ -1,0 +1,7 @@
+{
+  "DisplayName": "测试模型",
+  "ProductName": "Test Model",
+  "LedCount": 4,
+  "LedCoordinates": [[0,0],[1,0],[0,1],[1,1]],
+  "Image": ""
+}
