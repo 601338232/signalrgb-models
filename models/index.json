@@ -1,31 +1,9 @@
 {
   "version": "2.0",
-  "updated": "2026-02-10T13:28:26.605985",
-  "count": 79,
+  "updated": "2026-02-10T13:30:14.491079",
+  "count": 77,
   "thumbnails": 1,
   "models": [
-    {
-      "name": "21LED_通用 - 21 LED.json",
-      "title": "21LED_通用",
-      "leds": 21,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/21LED_通用 - 21 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "22LED_通用 - 22 LED.json",
-      "title": "22LED_通用",
-      "leds": 22,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/22LED_通用 - 22 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
     {
       "name": "24LED_通用 - 24 LED.json",
       "title": "24LED_通用",
