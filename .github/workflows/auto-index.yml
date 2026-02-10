@@ -27,25 +27,40 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..."
           sudo apt-get update
-          sudo apt-get install -y libjpeg-dev zlib1g-dev
-          pip install Pillow requests
+          sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+          pip install Pillow==10.0.0 requests==2.31.0
+          echo "Dependencies installed"
 
       - name: Run index generation
         run: |
           echo "Running index generation..."
+          
+          # Check if script exists
+          if [ ! -f "scripts/generate_index_with_thumbnails.py" ]; then
+            echo "ERROR: Python script not found at scripts/generate_index_with_thumbnails.py"
+            exit 1
+          fi
+          
+          # Run the script
           python scripts/generate_index_with_thumbnails.py
           
-          echo "Preview of generated index:"
+          # Check result
           if [ -f "models/index.json" ]; then
-            head -10 models/index.json
+            echo "✅ Index file generated successfully"
+            echo "File size: $(wc -c < models/index.json) bytes"
+            echo "Preview:"
+            head -5 models/index.json
           else
-            echo "ERROR: Index file not generated"
+            echo "❌ Index file not generated"
             exit 1
           fi
 
       - name: Commit and push
         run: |
+          echo "Checking for changes..."
+          
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
@@ -54,7 +69,15 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto update model index [skip ci]"
+            echo "Changes detected, committing..."
+            git commit -m "Auto update model index with thumbnails [skip ci]"
             git push origin main
             echo "Changes pushed successfully"
           fi
+
+      - name: Report
+        if: always()
+        run: |
+          echo "Workflow completed"
+          echo "Time: $(date)"
+          echo "Run ID: ${{ github.run_id }}"
