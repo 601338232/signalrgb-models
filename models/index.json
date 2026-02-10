@@ -1,16 +1,27 @@
 {
   "version": "2.0",
-  "updated": "2026-02-10T15:46:35.597980",
-  "count": 6,
-  "thumbnails": 6,
+  "updated": "2026-02-10T15:47:32.961779",
+  "count": 7,
+  "thumbnails": 7,
   "statistics": {
     "base64_success": 1,
     "base64_fail": 0,
-    "url_success": 5,
+    "url_success": 6,
     "url_fail": 0,
     "no_image": 0
   },
   "models": [
+    {
+      "name": "YICO积木一幻界×1 _22LEDs.json",
+      "title": "YICO积木一幻界×1 _22LEDs",
+      "leds": 22,
+      "width": 15,
+      "height": 15,
+      "brand": "CompGen",
+      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/YICO积木一幻界×1 _22LEDs.json",
+      "imageType": "url",
+      "thumbnail": "data:image/png;base64,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"
+    },
     {
       "name": "极讯万图9.2寸副屏 - 54LED.json",
       "title": "极讯万图9.2寸副屏 - 54LED",
