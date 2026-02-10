@@ -29,9 +29,8 @@ jobs:
         run: |
           echo "Installing dependencies..."
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-dev
           sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
-          pip3 install Pillow==10.0.0 requests==2.31.0
+          pip install Pillow==10.0.0 requests==2.31.0
           echo "Dependencies installed"
 
       - name: Run index generation
