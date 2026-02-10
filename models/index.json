@@ -1,75 +1,9 @@
 {
   "version": "2.0",
-  "updated": "2026-02-10T13:09:36.161421",
-  "count": 89,
+  "updated": "2026-02-10T13:18:38.680904",
+  "count": 82,
   "thumbnails": 1,
   "models": [
-    {
-      "name": "10LED_通用 - 10 LED.json",
-      "title": "10LED_通用",
-      "leds": 10,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/10LED_通用 - 10 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "11LED_通用 - 11 LED.json",
-      "title": "11LED_通用",
-      "leds": 11,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/11LED_通用 - 11 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "12LED_通用 - 12 LED.json",
-      "title": "12LED_通用",
-      "leds": 12,
-      "width": 15,
-      "height": 15,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/12LED_通用 - 12 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "13LED_通用 - 13 LED.json",
-      "title": "13LED_通用",
-      "leds": 13,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/13LED_通用 - 13 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "14LED_通用 - 14 LED.json",
-      "title": "14LED_通用",
-      "leds": 14,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/14LED_通用 - 14 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "15LED_通用 - 15 LED.json",
-      "title": "15LED_通用",
-      "leds": 15,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/15LED_通用 - 15 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
     {
       "name": "16LED_通用 - 16 LED.json",
       "title": "16LED_通用",
@@ -969,17 +903,6 @@
       "height": 15,
       "brand": "CompGen",
       "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/鱼巢棱镜4 - 14 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
-    {
-      "name": "鱼巢棱镜4_12 - 12 LED.json",
-      "title": "鱼巢棱镜4_12",
-      "leds": 12,
-      "width": 15,
-      "height": 15,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/鱼巢棱镜4_12 - 12 LED.json",
       "imageType": "url",
       "thumbnail": null
     }
