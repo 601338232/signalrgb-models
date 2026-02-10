@@ -1,0 +1,91 @@
+name: Update Model Index
+
+on:
+  push:
+    paths:
+      - 'models/**'
+    branches: [main, master]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Generate index.json
+        run: |
+          cd models
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          const modelsDir = '.';
+          const outputFile = 'index.json';
+          
+          // 获取所有JSON文件
+          const files = fs.readdirSync(modelsDir)
+            .filter(f => f.endsWith('.json') && f !== 'index.json')
+            .sort();
+          
+          const models = [];
+          
+          files.forEach(file => {
+            try {
+              const filePath = path.join(modelsDir, file);
+              const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+              
+              // 提取图片URL
+              let previewUrl = '';
+              if (data.Image) {
+                // 如果有内嵌图片，创建对应的PNG文件
+                const pngName = file.replace('.json', '.png');
+                previewUrl = \`https://raw.githubusercontent.com/${{ github.repository }}/main/models/\${pngName}\`;
+              } else if (data.ImageUrl) {
+                previewUrl = data.ImageUrl;
+              }
+              
+              models.push({
+                name: file,
+                productName: data.ProductName || file.replace('.json', ''),
+                ledCount: data.LedCount || 0,
+                width: data.Width || 0,
+                height: data.Height || 0,
+                brand: data.Brand || '',
+                previewUrl: previewUrl,
+                downloadUrl: \`https://raw.githubusercontent.com/${{ github.repository }}/main/models/\${file}\`,
+                fileSize: fs.statSync(filePath).size,
+                createdAt: new Date().toISOString().split('T')[0]
+              });
+            } catch(e) {
+              console.warn(\`无法处理文件 \${file}:\`, e.message);
+            }
+          });
+          
+          // 创建索引对象
+          const index = {
+            models: models,
+            lastUpdated: new Date().toISOString(),
+            count: models.length,
+            repository: '${{ github.repository }}'
+          };
+          
+          // 写入索引文件
+          fs.writeFileSync(outputFile, JSON.stringify(index, null, 2));
+          console.log(\`索引文件已生成: \${outputFile}\`);
+          console.log(\`共收录 \${models.length} 个模型\`);
+          "
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add models/index.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 自动更新模型索引"
+          git push
