@@ -1,0 +1,91 @@
+name: 🔄 自动同步模型索引
+
+on:
+  push:
+    paths:
+      - 'models/**'
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 获取代码
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 📊 扫描并生成索引
+        run: |
+          echo "=== 开始生成模型索引 ==="
+          cd models
+          
+          # 创建一个简单的Node.js脚本
+          cat > generate.js << 'EOF'
+          const fs = require('fs');
+          
+          console.log('扫描 models 文件夹...');
+          
+          // 获取所有JSON文件
+          const files = fs.readdirSync('.')
+            .filter(f => f.endsWith('.json') && f !== 'index.json')
+            .sort();
+          
+          console.log('找到文件:', files);
+          
+          const models = [];
+          
+          files.forEach(file => {
+            try {
+              const content = fs.readFileSync(file, 'utf8');
+              const data = JSON.parse(content);
+              
+              models.push({
+                name: file,
+                title: data.ProductName || file.replace('.json', ''),
+                leds: data.LedCount || 0,
+                width: data.Width || 0,
+                height: data.Height || 0,
+                brand: data.Brand || '',
+                time: new Date().toLocaleDateString('zh-CN')
+              });
+              
+              console.log('✅ 处理成功:', file);
+            } catch(e) {
+              console.log('❌ 处理失败:', file, e.message);
+            }
+          });
+          
+          // 创建索引对象
+          const index = {
+            version: '1.0',
+            updated: new Date().toISOString(),
+            count: models.length,
+            models: models
+          };
+          
+          // 保存到文件
+          fs.writeFileSync('index.json', JSON.stringify(index, null, 2));
+          console.log('🎉 索引生成完成！');
+          console.log('📊 模型数量:', models.length);
+          EOF
+          
+          # 运行脚本
+          node generate.js
+      
+      - name: 💾 提交更新
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          
+          git add models/index.json
+          
+          if git diff --cached --quiet; then
+            echo "没有变化，跳过提交"
+          else
+            git commit -m "🔄 自动更新索引"
+            git push
+            echo "✅ 索引已更新并推送"
+          fi
