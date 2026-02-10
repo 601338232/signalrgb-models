@@ -1,91 +1,229 @@
-name: Update Model Index
+name: 🔄 全自动模型索引
 
 on:
+  # 任何对 models/ 文件夹的操作都会触发
   push:
     paths:
-      - 'models/**'
-    branches: [main, master]
-  workflow_dispatch: # 允许手动触发
+      - 'models/**'        # 新增、删除、修改都会触发
+    branches: [ main ]
+  
+  # 手动触发按钮
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '手动触发原因'
+        required: false
+        default: '手动更新'
+        type: string
 
 jobs:
   update-index:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: 📥 获取最新代码
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
+      - name: 🛠️ 设置 Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Generate index.json
+      - name: 📊 生成智能索引
         run: |
+          echo "=== 开始生成模型索引 ==="
+          echo "📅 时间: $(date)"
+          echo "👤 操作者: ${{ github.actor }}"
+          echo "📦 仓库: ${{ github.repository }}"
+          
           cd models
-          node -e "
+          
+          # 创建一个超简单的生成脚本
+          cat > make-index.js << 'END'
           const fs = require('fs');
-          const path = require('path');
           
-          const modelsDir = '.';
-          const outputFile = 'index.json';
+          console.log('📁 扫描 models 文件夹...');
           
-          // 获取所有JSON文件
-          const files = fs.readdirSync(modelsDir)
-            .filter(f => f.endsWith('.json') && f !== 'index.json')
-            .sort();
+          // 获取所有 JSON 文件（排除 index.json 自己）
+          let files = [];
+          try {
+            files = fs.readdirSync('.')
+              .filter(f => f.endsWith('.json') && f !== 'index.json')
+              .sort();
+          } catch (e) {
+            console.log('⚠️ models 文件夹不存在，将创建空索引');
+          }
+          
+          console.log(`找到 ${files.length} 个模型文件`);
           
           const models = [];
           
+          // 处理每个文件
           files.forEach(file => {
             try {
-              const filePath = path.join(modelsDir, file);
-              const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-              
-              // 提取图片URL
-              let previewUrl = '';
-              if (data.Image) {
-                // 如果有内嵌图片，创建对应的PNG文件
-                const pngName = file.replace('.json', '.png');
-                previewUrl = \`https://raw.githubusercontent.com/${{ github.repository }}/main/models/\${pngName}\`;
-              } else if (data.ImageUrl) {
-                previewUrl = data.ImageUrl;
-              }
+              const content = fs.readFileSync(file, 'utf8');
+              const data = JSON.parse(content);
               
               models.push({
+                id: file.replace('.json', ''),
                 name: file,
-                productName: data.ProductName || file.replace('.json', ''),
-                ledCount: data.LedCount || 0,
-                width: data.Width || 0,
-                height: data.Height || 0,
+                title: data.ProductName || file.replace('.json', ''),
+                leds: data.LedCount || 0,
+                size: `${data.Width || 0}×${data.Height || 0}`,
                 brand: data.Brand || '',
-                previewUrl: previewUrl,
-                downloadUrl: \`https://raw.githubusercontent.com/${{ github.repository }}/main/models/\${file}\`,
-                fileSize: fs.statSync(filePath).size,
-                createdAt: new Date().toISOString().split('T')[0]
+                time: new Date().toISOString().split('T')[0],
+                download: `https://raw.githubusercontent.com/${{ github.repository }}/main/models/${file}`,
+                raw: `https://github.com/${{ github.repository }}/blob/main/models/${file}`
               });
-            } catch(e) {
-              console.warn(\`无法处理文件 \${file}:\`, e.message);
+              
+              console.log(`✅ ${file}`);
+            } catch (e) {
+              console.log(`❌ ${file}: ${e.message}`);
             }
           });
           
-          // 创建索引对象
+          // 生成索引
           const index = {
-            models: models,
-            lastUpdated: new Date().toISOString(),
+            version: '1.0',
+            updated: new Date().toISOString(),
             count: models.length,
-            repository: '${{ github.repository }}'
+            models: models,
+            info: '自动生成 - 新增/删除/修改都会自动更新'
           };
           
-          // 写入索引文件
-          fs.writeFileSync(outputFile, JSON.stringify(index, null, 2));
-          console.log(\`索引文件已生成: \${outputFile}\`);
-          console.log(\`共收录 \${models.length} 个模型\`);
-          "
+          // 保存
+          fs.writeFileSync('index.json', JSON.stringify(index, null, 2));
+          console.log('\n🎉 索引生成完成！');
+          console.log(`📊 统计: ${models.length} 个模型`);
+          console.log(`⏰ 更新时间: ${index.updated}`);
+          END
+          
+          # 运行脚本
+          node make-index.js
 
-      - name: Commit and push changes
+      - name: 💾 自动提交更新
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          # 配置 Git
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # 添加索引文件
           git add models/index.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "🔄 自动更新模型索引"
-          git push
+          
+          # 检查是否有变化
+          if git diff --cached --quiet; then
+            echo "🔄 没有变化，跳过提交"
+          else
+            # 提交
+            git commit -m "📱 自动更新索引（操作者: ${{ github.actor }}）"
+            git push
+            echo "✅ 索引已更新并推送"
+          fi
+
+      - name: 📱 生成手机友好页面
+        run: |
+          cd models
+          
+          # 创建 HTML 查看页面（手机友好）
+          cat > index.html << 'HTML'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>📱 手机模型库</title>
+            <style>
+              * { margin:0; padding:0; box-sizing:border-box; }
+              body { font-family: -apple-system, sans-serif; padding:15px; background:#f5f5f7; }
+              .header { background:#fff; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+              h1 { color:#333; font-size:22px; margin-bottom:5px; }
+              .info { color:#666; font-size:14px; margin-bottom:15px; }
+              .model-list { display:grid; gap:12px; }
+              .model-card { background:#fff; padding:18px; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+              .model-name { font-size:18px; font-weight:600; color:#007AFF; margin-bottom:5px; }
+              .model-meta { display:flex; gap:15px; margin-top:10px; font-size:13px; color:#666; }
+              .model-meta span { background:#f0f0f0; padding:4px 10px; border-radius:10px; }
+              .actions { margin-top:15px; display:flex; gap:10px; }
+              .btn { flex:1; text-align:center; padding:12px; border-radius:10px; text-decoration:none; font-weight:500; }
+              .btn-download { background:#007AFF; color:white; }
+              .btn-view { background:#f0f0f0; color:#333; }
+              .footer { margin-top:25px; text-align:center; color:#999; font-size:12px; padding:15px; }
+              .empty { text-align:center; padding:50px; color:#999; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>📱 手机模型库</h1>
+              <div class="info">共 <span id="count">0</span> 个模型 • 最后更新: <span id="time">-</span></div>
+              <div style="display:flex; gap:10px; margin-top:15px;">
+                <a href="https://github.com/${{ github.repository }}/upload/main/models" 
+                   style="flex:1; background:#34C759; color:white; text-align:center; padding:12px; border-radius:10px; text-decoration:none;">
+                  📤 上传新模型
+                </a>
+                <a href="https://github.com/${{ github.repository }}/tree/main/models" 
+                   style="flex:1; background:#8E8E93; color:white; text-align:center; padding:12px; border-radius:10px; text-decoration:none;">
+                  📁 管理文件
+                </a>
+              </div>
+            </div>
+            
+            <div id="model-list" class="model-list">
+              <!-- 模型列表会在这里显示 -->
+            </div>
+            
+            <div class="footer">
+              <p>📲 手机操作提示：点击"上传新模型"可添加文件，在"管理文件"中可删除文件</p>
+              <p>✨ 所有操作都会自动同步到编辑器</p>
+            </div>
+            
+            <script>
+              // 加载索引数据
+              fetch('index.json')
+                .then(r => r.json())
+                .then(data => {
+                  document.getElementById('count').textContent = data.count;
+                  document.getElementById('time').textContent = new Date(data.updated).toLocaleString('zh-CN');
+                  
+                  const container = document.getElementById('model-list');
+                  
+                  if (data.models.length === 0) {
+                    container.innerHTML = '<div class="empty">📭 还没有模型文件，点击上方"上传新模型"开始添加</div>';
+                    return;
+                  }
+                  
+                  data.models.forEach(model => {
+                    const card = document.createElement('div');
+                    card.className = 'model-card';
+                    card.innerHTML = `
+                      <div class="model-name">${model.title}</div>
+                      <div>文件: ${model.name}</div>
+                      <div class="model-meta">
+                        <span>${model.leds} LED</span>
+                        <span>${model.size}</span>
+                        ${model.brand ? `<span>${model.brand}</span>` : ''}
+                      </div>
+                      <div class="actions">
+                        <a href="${model.download}" class="btn btn-download" download="${model.name}">⬇️ 下载</a>
+                        <a href="${model.raw}" target="_blank" class="btn btn-view">👁️ 查看</a>
+                      </div>
+                    `;
+                    container.appendChild(card);
+                  });
+                })
+                .catch(e => {
+                  document.getElementById('model-list').innerHTML = '<div class="empty">❌ 加载失败，请刷新重试</div>';
+                });
+            </script>
+          </body>
+          </html>
+          HTML
+          
+          echo "📱 手机查看页面已生成: models/index.html"
+
+      - name: 🌐 生成访问链接
+        run: |
+          echo "🎉 设置完成！"
+          echo "📊 索引文件: https://raw.githubusercontent.com/${{ github.repository }}/main/models/index.json"
+          echo "📱 手机页面: https://htmlpreview.github.io/?https://raw.githubusercontent.com/${{ github.repository }}/main/models/index.html"
+          echo "📁 上传地址: https://github.com/${{ github.repository }}/upload/main/models"
