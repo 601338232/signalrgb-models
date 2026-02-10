@@ -1,20 +1,9 @@
 {
   "version": "2.0",
-  "updated": "2026-02-10T13:27:38.040826",
-  "count": 80,
+  "updated": "2026-02-10T13:28:26.605985",
+  "count": 79,
   "thumbnails": 1,
   "models": [
-    {
-      "name": "20LED_通用 - 20 LED.json",
-      "title": "20LED_通用",
-      "leds": 20,
-      "width": 17,
-      "height": 17,
-      "brand": "CompGen",
-      "download": "https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/20LED_通用 - 20 LED.json",
-      "imageType": "url",
-      "thumbnail": null
-    },
     {
       "name": "21LED_通用 - 21 LED.json",
       "title": "21LED_通用",
