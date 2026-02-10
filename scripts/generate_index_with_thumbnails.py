@@ -1,227 +1,41 @@
-# 在仓库根目录执行
-mkdir -p scripts
-
-# 创建脚本文件
-cat > scripts/generate_index_with_thumbnails.py << 'EOF'
 import os
 import json
-import base64
 from datetime import datetime
-import requests
-from PIL import Image
-import io
 
-print("🖼️ SignalRGB 模型索引生成器 - 带缩略图")
-print("=" * 60)
+print("Starting index generation...")
 
-def create_thumbnail_from_base64(base64_data, max_size=(80, 80)):
-    """从Base64图片创建缩略图"""
-    try:
-        # 移除data:image前缀
-        if 'base64,' in base64_data:
-            base64_data = base64_data.split('base64,')[1]
-        
-        # 解码Base64
-        img_data = base64.b64decode(base64_data)
-        img = Image.open(io.BytesIO(img_data))
-        
-        # 转换为RGB（处理透明背景）
-        if img.mode in ('RGBA', 'LA', 'P'):
-            background = Image.new('RGB', img.size, (255, 255, 255))
-            if img.mode == 'RGBA':
-                r, g, b, a = img.split()
-                img_rgb = Image.merge('RGB', (r, g, b))
-                background.paste(img_rgb, mask=a)
-            else:
-                background.paste(img)
-            img = background
-        elif img.mode != 'RGB':
-            img = img.convert('RGB')
-        
-        # 生成缩略图
-        img.thumbnail(max_size, Image.Resampling.LANCZOS)
-        
-        # 转换为Base64
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG", optimize=True, quality=85)
-        return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
-    except Exception as e:
-        print(f"    ⚠️ Base64缩略图失败: {str(e)[:50]}")
-        return None
+# Check if models directory exists
+if not os.path.exists("models"):
+    print("ERROR: models directory does not exist")
+    exit(1)
 
-def create_thumbnail_from_url(url, max_size=(80, 80)):
-    """从URL创建缩略图"""
-    try:
-        # 设置User-Agent
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (SignalRGB-Model-Indexer/1.0)'
-        }
-        
-        # 下载图片（限制5MB）
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        
-        if len(response.content) > 5 * 1024 * 1024:
-            print(f"    ⚠️ 图片过大，跳过")
-            return None
-        
-        img = Image.open(io.BytesIO(response.content))
-        
-        # 转换为RGB
-        if img.mode in ('RGBA', 'LA', 'P'):
-            background = Image.new('RGB', img.size, (255, 255, 255))
-            if img.mode == 'RGBA':
-                r, g, b, a = img.split()
-                img_rgb = Image.merge('RGB', (r, g, b))
-                background.paste(img_rgb, mask=a)
-            else:
-                background.paste(img)
-            img = background
-        elif img.mode != 'RGB':
-            img = img.convert('RGB')
-        
-        # 生成缩略图
-        img.thumbnail(max_size, Image.Resampling.LANCZOS)
-        
-        # 转换为Base64
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG", optimize=True, quality=85)
-        return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
-    except Exception as e:
-        print(f"    ⚠️ URL缩略图失败: {str(e)[:50]}")
-        return None
+# List all JSON files
+models = []
+for filename in os.listdir("models"):
+    if filename.endswith(".json") and filename != "index.json":
+        models.append({
+            "name": filename,
+            "title": filename.replace(".json", ""),
+            "leds": 0,
+            "width": 0,
+            "height": 0,
+            "brand": "CompGen",
+            "download": f"https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/main/models/{filename}",
+            "imageType": "none",
+            "thumbnail": None
+        })
+        print(f"Added: {filename}")
 
-def generate_index():
-    """主生成函数"""
-    models_dir = "models"
-    
-    if not os.path.exists(models_dir):
-        print(f"❌ 错误: '{models_dir}' 目录不存在")
-        return None
-    
-    # 获取所有JSON文件
-    model_files = []
-    for filename in os.listdir(models_dir):
-        if filename.lower().endswith('.json') and filename != 'index.json':
-            model_files.append(filename)
-    
-    print(f"📁 找到 {len(model_files)} 个模型文件")
-    print("-" * 60)
-    
-    models = []
-    thumbnails_generated = 0
-    
-    for filename in sorted(model_files):
-        filepath = os.path.join(models_dir, filename)
-        print(f"🔍 处理: {filename}")
-        
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            # 基本信息
-            model_info = {
-                "name": filename,
-                "title": data.get('ProductName', filename.replace('.json', '')),
-                "leds": data.get('LedCount', 0),
-                "width": data.get('Width', 0),
-                "height": data.get('Height', 0),
-                "brand": data.get('Brand', 'CompGen'),
-                "download": f"https://cdn.jsdelivr.net/gh/{os.environ.get('GITHUB_REPOSITORY', '601338232/signalrgb-models')}/main/models/{filename}",
-                "imageType": "none",
-                "thumbnail": None
-            }
-            
-            # 处理图片
-            if 'Image' in data and data['Image']:
-                # Base64图片
-                thumbnail = create_thumbnail_from_base64(data['Image'])
-                if thumbnail:
-                    model_info["thumbnail"] = thumbnail
-                    model_info["imageType"] = "base64"
-                    thumbnails_generated += 1
-                    print(f"    ✅ Base64缩略图生成成功")
-                else:
-                    model_info["imageType"] = "base64"
-                    print(f"    ℹ️ Base64图片（缩略图生成失败）")
-            
-            elif 'ImageUrl' in data and data['ImageUrl']:
-                # 网络图片
-                image_url = data['ImageUrl']
-                model_info["imageType"] = "url"
-                
-                # 尝试生成缩略图（GitHub图片通常可以）
-                if 'github.com' in image_url or 'raw.githubusercontent.com' in image_url:
-                    thumbnail = create_thumbnail_from_url(image_url)
-                    if thumbnail:
-                        model_info["thumbnail"] = thumbnail
-                        thumbnails_generated += 1
-                        print(f"    ✅ GitHub图片缩略图生成成功")
-                    else:
-                        print(f"    ℹ️ GitHub图片（缩略图生成失败）")
-                else:
-                    print(f"    ℹ️ 外部URL图片（跳过缩略图）")
-            
-            else:
-                print(f"    ℹ️ 无图片")
-            
-            models.append(model_info)
-            print(f"    📊 {model_info['leds']} LED, {model_info['width']}×{model_info['height']}")
-            
-        except json.JSONDecodeError as e:
-            print(f"    ❌ JSON格式错误")
-            # 创建基本模型信息（即使JSON解析失败）
-            models.append({
-                "name": filename,
-                "title": filename.replace('.json', ''),
-                "leds": 0,
-                "width": 0,
-                "height": 0,
-                "brand": "Error",
-                "download": f"https://cdn.jsdelivr.net/gh/{os.environ.get('GITHUB_REPOSITORY', '601338232/signalrgb-models')}/main/models/{filename}",
-                "imageType": "none",
-                "thumbnail": None
-            })
-        except Exception as e:
-            print(f"    ❌ 处理失败: {str(e)[:50]}")
-    
-    # 构建索引数据
-    index_data = {
-        "version": "2.0",
-        "updated": datetime.now().isoformat(),
-        "count": len(models),
-        "thumbnails": thumbnails_generated,
-        "models": models
-    }
-    
-    # 写入文件
-    output_path = os.path.join(models_dir, "index.json")
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(index_data, f, indent=2, ensure_ascii=False)
-    
-    # 统计信息
-    print("=" * 60)
-    print("📊 生成统计:")
-    print(f"   模型总数: {len(models)}")
-    print(f"   生成缩略图: {thumbnails_generated}")
-    
-    # 按类型统计
-    base64_count = sum(1 for m in models if m['imageType'] == 'base64')
-    url_count = sum(1 for m in models if m['imageType'] == 'url')
-    
-    print(f"   Base64图片: {base64_count}")
-    print(f"   网络图片: {url_count}")
-    print(f"   无图片: {len(models) - base64_count - url_count}")
-    
-    file_size = os.path.getsize(output_path) / 1024
-    print(f"   文件大小: {file_size:.1f} KB")
-    
-    if file_size > 1000:
-        print("⚠️  警告：索引文件超过1MB，建议检查")
-    
-    print("✅ 索引生成完成！")
-    return index_data
+# Create index
+index_data = {
+    "version": "2.0",
+    "updated": datetime.now().isoformat(),
+    "count": len(models),
+    "models": models
+}
 
-if __name__ == "__main__":
-    generate_index()
-EOF
+# Save to file
+with open("models/index.json", "w", encoding="utf-8") as f:
+    json.dump(index_data, f, indent=2)
+
+print(f"Done! Generated {len(models)} models")
