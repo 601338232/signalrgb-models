@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# 关键修复：添加写入权限
+permissions:
+  contents: write  # 允许工作流写入仓库内容
+
 jobs:
   update-index:
     runs-on: ubuntu-latest
@@ -15,30 +19,44 @@ jobs:
       - name: 📥 获取代码
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
+          token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub 提供的 token
+          fetch-depth: 0  # 获取完整历史
+
       - name: 📊 扫描并生成索引
         run: |
           echo "=== 开始生成模型索引 ==="
+          echo "工作流运行ID: ${{ github.run_id }}"
+          echo "触发者: ${{ github.actor }}"
+          
+          # 创建 models 文件夹（如果不存在）
+          mkdir -p models
           cd models
           
-          # 创建一个简单的Node.js脚本
+          # 创建一个简单的 Node.js 脚本
           cat > generate.js << 'EOF'
           const fs = require('fs');
+          const path = require('path');
           
-          console.log('扫描 models 文件夹...');
+          console.log('📁 扫描 models 文件夹...');
           
-          // 获取所有JSON文件
-          const files = fs.readdirSync('.')
-            .filter(f => f.endsWith('.json') && f !== 'index.json')
-            .sort();
+          // 获取所有 JSON 文件
+          let files = [];
+          try {
+            files = fs.readdirSync('.')
+              .filter(f => f.toLowerCase().endsWith('.json') && f !== 'index.json')
+              .sort();
+          } catch(e) {
+            console.log('⚠️ models 文件夹为空');
+          }
           
-          console.log('找到文件:', files);
+          console.log('找到文件:', files.length);
           
           const models = [];
+          let success = 0;
           
           files.forEach(file => {
             try {
+              console.log(`处理: ${file}`);
               const content = fs.readFileSync(file, 'utf8');
               const data = JSON.parse(content);
               
@@ -49,12 +67,14 @@ jobs:
                 width: data.Width || 0,
                 height: data.Height || 0,
                 brand: data.Brand || '',
-                time: new Date().toLocaleDateString('zh-CN')
+                time: new Date().toLocaleDateString('zh-CN'),
+                download: `https://raw.githubusercontent.com/${{ github.repository }}/main/models/${file}`
               });
               
-              console.log('✅ 处理成功:', file);
+              success++;
+              console.log(`✅ 成功: ${file}`);
             } catch(e) {
-              console.log('❌ 处理失败:', file, e.message);
+              console.log(`❌ 失败 ${file}: ${e.message}`);
             }
           });
           
@@ -63,29 +83,58 @@ jobs:
             version: '1.0',
             updated: new Date().toISOString(),
             count: models.length,
+            success: success,
+            total: files.length,
             models: models
           };
           
           // 保存到文件
           fs.writeFileSync('index.json', JSON.stringify(index, null, 2));
           console.log('🎉 索引生成完成！');
-          console.log('📊 模型数量:', models.length);
+          console.log(`📊 统计: ${success}/${files.length} 成功`);
           EOF
           
           # 运行脚本
           node generate.js
-      
+          
+          # 显示生成的索引内容
+          echo "=== 生成的索引内容 ==="
+          cat index.json | head -30
+
       - name: 💾 提交更新
         run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+          echo "=== 开始提交更新 ==="
           
+          # 配置 Git 用户
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
+          # 添加索引文件
           git add models/index.json
           
+          # 检查是否有变化
           if git diff --cached --quiet; then
-            echo "没有变化，跳过提交"
+            echo "🔄 没有变化，跳过提交"
           else
-            git commit -m "🔄 自动更新索引"
-            git push
-            echo "✅ 索引已更新并推送"
+            echo "📝 检测到变化，正在提交..."
+            git commit -m "🔄 自动更新模型索引 [skip ci]"
+            
+            # 尝试推送
+            echo "🚀 正在推送到 GitHub..."
+            git push origin main
+            
+            echo "✅ 提交成功！"
+            
+            # 显示提交信息
+            echo "📋 提交信息:"
+            git log -1 --oneline
           fi
+          
+          echo "=== 提交步骤完成 ==="
+
+      - name: 📤 上传结果（可选）
+        if: always()
+        run: |
+          echo "🎯 工作流执行完成"
+          echo "📅 完成时间: $(date)"
+          echo "🏃 工作流ID: ${{ github.run_id }}"
