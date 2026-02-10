@@ -158,7 +158,7 @@ def generate_index():
                 "width": data.get('Width', 0),
                 "height": data.get('Height', 0),
                 "brand": data.get('Brand', 'CompGen'),
-                "download": f"https://cdn.jsdelivr.net/gh/601338232/signalrgb-models/@main/models/{filename}",
+                "download": f"https://cdn.jsdelivr.net/gh/601338232/signalrgb-models@main/models/{filename}",
                 "imageType": "none",
                 "thumbnail": None
             }
