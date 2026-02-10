@@ -1,4 +1,4 @@
-name: 🔄 自动同步模型索引（带缩略图）
+name: Auto Update Model Index
 
 on:
   push:
@@ -15,60 +15,46 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 获取代码
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
-      - name: 🐍 设置Python环境
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          cache: 'pip'
 
-      - name: 📦 安装依赖
+      - name: Install dependencies
         run: |
-          echo "正在安装依赖..."
           sudo apt-get update
-          sudo apt-get install -y libjpeg-dev zlib1g-dev libpng-dev
+          sudo apt-get install -y libjpeg-dev zlib1g-dev
           pip install Pillow requests
-          echo "✅ 依赖安装完成"
 
-      - name: 🚀 运行索引生成脚本
+      - name: Run index generation
         run: |
-          echo "开始生成索引..."
+          echo "Running index generation..."
           python scripts/generate_index_with_thumbnails.py
           
-          echo "生成的索引预览："
+          echo "Preview of generated index:"
           if [ -f "models/index.json" ]; then
-            head -20 models/index.json
+            head -10 models/index.json
           else
-            echo "❌ 索引文件未生成"
+            echo "ERROR: Index file not generated"
             exit 1
           fi
 
-      - name: 💾 提交更新
+      - name: Commit and push
         run: |
-          echo "检查更改..."
-          
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
           git add models/index.json
           
           if git diff --cached --quiet; then
-            echo "🔄 没有变化，跳过提交"
+            echo "No changes to commit"
           else
-            echo "📝 检测到变化，正在提交..."
-            git commit -m "🔄 自动更新模型索引 v2.0 [skip ci]"
+            git commit -m "Auto update model index [skip ci]"
             git push origin main
-            echo "✅ 提交成功！"
+            echo "Changes pushed successfully"
           fi
-
-      - name: 📋 完成报告
-        if: always()
-        run: |
-          echo "🎉 工作流执行完成"
-          echo "📅 完成时间: $(date)"
-          echo "🏃 工作流ID: ${{ github.run_id }}"
