@@ -1,3 +1,8 @@
+# 1. 备份旧文件
+cp .github/workflows/auto-index.yml .github/workflows/auto-index-backup.yml
+
+# 2. 用方案一替换
+cat > .github/workflows/auto-index.yml << 'EOF'
 name: 🔄 自动同步模型索引（带缩略图）
 
 on:
@@ -15,21 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 步骤1：获取代码
       - name: 📥 获取代码
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      # 步骤2：设置Python环境
       - name: 🐍 设置Python环境
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
           cache: 'pip'
 
-      # 步骤3：安装依赖
       - name: 📦 安装依赖
         run: |
           echo "正在安装依赖..."
@@ -38,7 +40,6 @@ jobs:
           pip install Pillow requests
           echo "✅ 依赖安装完成"
 
-      # 步骤4：运行索引生成脚本
       - name: 🚀 运行索引生成脚本
         run: |
           echo "开始生成索引..."
@@ -52,7 +53,6 @@ jobs:
             exit 1
           fi
 
-      # 步骤5：提交更新
       - name: 💾 提交更新
         run: |
           echo "检查更改..."
@@ -71,10 +71,10 @@ jobs:
             echo "✅ 提交成功！"
           fi
 
-      # 步骤6：完成报告
       - name: 📋 完成报告
         if: always()
         run: |
           echo "🎉 工作流执行完成"
           echo "📅 完成时间: $(date)"
           echo "🏃 工作流ID: ${{ github.run_id }}"
+EOF
